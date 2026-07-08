@@ -5,6 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "worker": "tsx watch src/worker.ts",
     "build": "tsc",
     "migrate": "tsx scripts/migrate.ts"
   },
@@ -13,7 +14,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "fastify": "^5.10.0",
+  "fastify": "^5.10.0",
     "pg": "^8.22.0"
   },
   "devDependencies": {

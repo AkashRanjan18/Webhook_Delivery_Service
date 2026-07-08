@@ -4,6 +4,7 @@ import { config } from "./config.js";
 import { pool } from "./db.js";
 import { endpointRoutes } from "./routes/endpoints.js";
 import { messageRoutes } from "./routes/messages.js";
+import { deliveryRoutes } from "./routes/deliveries.js";
 
 const app = Fastify({ logger: true });
 
@@ -13,6 +14,7 @@ app.get("/health", async () => (
 
 await app.register(endpointRoutes);
 await app.register(messageRoutes);
+await app.register(deliveryRoutes);
 
 async function shutdown(signal: string) {
   app.log.info(`${signal} received, shutting down …`);

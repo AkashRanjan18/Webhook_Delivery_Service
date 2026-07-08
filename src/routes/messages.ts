@@ -24,24 +24,41 @@ export async function messageRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { endpoint_id, payload } = request.body;
 
+      // Optional idempotency key (header names arrive lowercased). null = not sent.
+      const header = request.headers["idempotency-key"];
+      const idempotencyKey = typeof header === "string" ? header : null;
+
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
 
+        // Insert the message; if this key already exists, insert nothing (no error).
         const msg = await client.query<{ id: string }>(
-          "INSERT INTO messages (endpoint_id, payload) VALUES ($1, $2) RETURNING id",
-          [endpoint_id, payload],
-        );
-        const messageId = msg.rows[0].id;
-
-        await client.query(
-          "INSERT INTO deliveries (message_id) VALUES ($1)",
-          [messageId],
+          `INSERT INTO messages (endpoint_id, payload, idempotency_key)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
+           RETURNING id`,
+          [endpoint_id, payload, idempotencyKey],
         );
 
+        if (msg.rows.length > 0) {
+          // New message → create its pending delivery.
+          const messageId = msg.rows[0].id;
+          await client.query(
+            "INSERT INTO deliveries (message_id) VALUES ($1)",
+            [messageId],
+          );
+          await client.query("COMMIT");
+          return reply.code(202).send({ message_id: messageId });
+        }
+
+        // Duplicate idempotency key → return the original message, no new delivery.
+        const existing = await client.query<{ id: string }>(
+          "SELECT id FROM messages WHERE idempotency_key = $1",
+          [idempotencyKey],
+        );
         await client.query("COMMIT");
-
-        return reply.code(202).send({ message_id: messageId });
+        return reply.code(202).send({ message_id: existing.rows[0].id });
       } catch (err) {
         await client.query("ROLLBACK");
         request.log.error(err, "failed to enqueue message");
