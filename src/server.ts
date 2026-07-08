@@ -1,21 +1,10 @@
-
-import Fastify from "fastify";
 import { config } from "./config.js";
 import { pool } from "./db.js";
-import { endpointRoutes } from "./routes/endpoints.js";
-import { messageRoutes } from "./routes/messages.js";
-import { deliveryRoutes } from "./routes/deliveries.js";
+import { buildApp } from "./app.js";
 
-const app = Fastify({ logger: true });
+const app = await buildApp();
 
-app.get("/health", async () => (
-     { ok: true }
-));
-
-await app.register(endpointRoutes);
-await app.register(messageRoutes);
-await app.register(deliveryRoutes);
-
+// Graceful shutdown: stop taking new requests, drain in-flight ones, close the DB pool.
 async function shutdown(signal: string) {
   app.log.info(`${signal} received, shutting down …`);
   await app.close();

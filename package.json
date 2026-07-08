@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "worker": "tsx watch src/worker.ts",
+    "receiver": "tsx scripts/receiver.ts",
+    "benchmark": "tsx scripts/benchmark.ts",
     "build": "tsc",
-    "migrate": "tsx scripts/migrate.ts"
+    "migrate": "tsx scripts/migrate.ts",
+    "test": "node --import tsx --test test/backoff.test.ts test/signing.test.ts",
+    "test:integration": "node --import tsx --test test/integration.test.ts"
   },
   "keywords": [],
   "author": "",
