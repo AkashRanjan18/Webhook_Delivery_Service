@@ -83,7 +83,6 @@ export async function reapStale(staleMs: number): Promise<number> {
   return result.rowCount ?? 0;
 }
 
-// One row in the dead-letter queue (deliveries the worker gave up on).
 export interface DeadDelivery {
   id: string;
   message_id: string;
@@ -92,7 +91,6 @@ export interface DeadDelivery {
   updated_at: Date;
 }
 
-/** List deliveries that were given up on (the dead-letter queue). */
 export async function listDead(limit: number): Promise<DeadDelivery[]> {
   const result = await query<DeadDelivery>(
     `SELECT id, message_id, attempt_count, last_error, updated_at
@@ -105,11 +103,7 @@ export async function listDead(limit: number): Promise<DeadDelivery[]> {
   return result.rows;
 }
 
-/**
- * Re-queue a dead delivery for a fresh set of attempts.
- * The `status = 'dead'` guard means only genuinely-dead rows can be replayed;
- * returns false if the id isn't found or isn't dead.
- */
+
 export async function replayDelivery(id: string): Promise<boolean> {
   const result = await query(
     `UPDATE deliveries

@@ -4,7 +4,6 @@ import { buildApp } from "./app.js";
 
 const app = await buildApp();
 
-// Graceful shutdown: stop taking new requests, drain in-flight ones, close the DB pool.
 async function shutdown(signal: string) {
   app.log.info(`${signal} received, shutting down …`);
   await app.close();

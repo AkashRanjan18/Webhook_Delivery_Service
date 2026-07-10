@@ -1,9 +1,5 @@
 import { pool, query } from "../src/db.js";
 
-// Load test: enqueue COUNT messages, then measure how long the worker takes to
-// deliver them all (against the flaky receiver) and report throughput + latency.
-//
-// Run alongside: `docker compose up -d`, `npm run dev`, `npm run receiver`, `npm run worker`.
 const API = process.env.API_URL ?? "http://localhost:3000";
 const RECEIVER = process.env.RECEIVER_URL ?? "http://localhost:4000";
 const SECRET = process.env.SECRET ?? "testsecret";
